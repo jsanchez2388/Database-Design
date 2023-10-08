@@ -204,8 +204,8 @@ def start_screen():
     register_button = tk.Button(start_frame, text="Register", font=("Arial", 20), command=register_screen)
     register_button.grid(row=1, column=2, padx=10, pady=10)
 
-
 start_screen()
+
 
 
 #Run App
