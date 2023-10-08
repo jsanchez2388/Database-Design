@@ -48,9 +48,9 @@ def login():
             SELECT * FROM users WHERE username = %s AND password = %s
         ''', (username, password))
         user = cursor.fetchone()
-
+        #If user exists, log them in
         if user:
-            login_screen.destroy()  # Destroy the login screen
+            login_screen.destroy()
             logged_in_screen(user)
         else:
             logged_in_label.config(text="Login failed. Invalid credentials.")
@@ -67,6 +67,7 @@ def login():
 
         welcome_label = tk.Label(logged_in_frame, text=f"Welcome {user[2]} {user[3]}", font=("Arial", 20))
         welcome_label.grid(row=0, column=0, padx=10, pady=10)
+
     login_screen = tk.Frame(app)
     login_screen.grid(row=0, column=0, sticky="nsew")
 
@@ -112,7 +113,7 @@ def register_screen():
 
         cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
         existing_email = cursor.fetchone()
-
+        #If already exists, do not register
         if existing_username:
             registration_status_label.config(text="Registration failed. Username already exists.")
         elif existing_email:
@@ -120,7 +121,7 @@ def register_screen():
         elif password != password_confirm:
             registration_status_label.config(text="Registration failed. Passwords do not match.")
         else:
-            # Insert user data into the MySQL database
+            # Otherwise, insert to the database
             insert_query = """
                 INSERT INTO users (username, password, firstName, lastName, email)
                 VALUES (%s, %s, %s, %s, %s)
