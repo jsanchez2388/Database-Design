@@ -5,3 +5,9 @@ Josue Sanchez - Create initial GUI template.
 Abigail Macias 
              - Logout functionality.
              - Video Demonstration and Upload.
+
+Arfan Myint
+                - Worked on the Frontend from initial GUI template
+                - Integrated frontend with database
+                - Worked on the backend
+                - Fixed issues with backend
