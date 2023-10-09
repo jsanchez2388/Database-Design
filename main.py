@@ -98,6 +98,16 @@ def logged_in_screen(user):
     welcome_label = tk.Label(logged_in_frame, text=f"Welcome {user[2]} {user[3]}", font=("Arial", 20))
     welcome_label.grid(row=0, column=0, padx=10, pady=10)
 
+     # Create a "Log Out" button
+    logout_button = tk.Button(logged_in_frame, text="Log Out", font=("Arial", 16), command=logout)
+    logout_button.grid(row=1, column=0, padx=10, pady=10)
+
+def logout():
+    """log out and return to the start screen."""
+    for widget in app.winfo_children():
+        widget.destroy()
+    start_screen()
+
 def login():
     """Display the login screen."""
     login_screen = tk.Frame(app)
