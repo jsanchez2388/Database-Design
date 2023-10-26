@@ -3,6 +3,8 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from dbconnection import create_database_connection
 from user_management import register_user, check_user
+from item_management import insert_item_screen, insert_new_item
+
 
 # Initialize the main application window
 app = tk.Tk()
@@ -87,20 +89,24 @@ def register_user_callback():
         messagebox.showerror("Error", "An error occurred during registration!")
 
 def logged_in_screen(user):
-    """Display a welcome message for the logged-in user."""
+    """Display a welcome message for the logged-in user and provide options for further actions."""
     logged_in_frame = tk.Frame(app)
     logged_in_frame.grid(row=0, column=0, sticky="nsew")
 
-    # Configure grid layout for the frame
+    # Grid layout for the frame
     logged_in_frame.grid_rowconfigure(0, weight=1)
     logged_in_frame.grid_columnconfigure(0, weight=1)
 
     welcome_label = tk.Label(logged_in_frame, text=f"Welcome {user[2]} {user[3]}", font=("Arial", 20))
     welcome_label.grid(row=0, column=0, padx=10, pady=10)
 
-     # Create a "Log Out" button
+    # Insert Item button
+    insert_item_button = tk.Button(logged_in_frame, text="Insert New Item", font=("Arial", 16), command=lambda: insert_item_screen(app, user[0], conn))
+    insert_item_button.grid(row=1, column=0, padx=10, pady=10)
+
+    # Log Out button
     logout_button = tk.Button(logged_in_frame, text="Log Out", font=("Arial", 16), command=logout)
-    logout_button.grid(row=1, column=0, padx=10, pady=10)
+    logout_button.grid(row=2, column=0, padx=10, pady=10)
 
 def logout():
     """log out and return to the start screen."""
