@@ -109,7 +109,8 @@ class SearchPage(tk.Frame):
         tk.Button(self, text="Search", command=self.search_items).pack()
         tk.Button(self, text="Write Review", command=self.write_review).pack()
 
-        self.result_tree = ttk.Treeview(self, columns=("Name", "Description", "Price", "Date"), show="headings")
+        self.result_tree = ttk.Treeview(self, columns=("ID", "Name", "Description", "Price", "Date"), show="headings")
+        self.result_tree.heading("ID", text="ID")
         self.result_tree.heading("Name", text="Name")
         self.result_tree.heading("Description", text="Description")
         self.result_tree.heading("Price", text="Price")
@@ -123,7 +124,7 @@ class SearchPage(tk.Frame):
         conn = self.controller.get_db_connection()
         cursor = conn.cursor()
         try:
-            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
+            query = "SELECT item_id, item_name, item_description, item_price, post_date FROM items WHERE category = %s"
             cursor.execute(query, (category,))
             results = cursor.fetchall()
             self.display_results(results)
@@ -198,7 +199,7 @@ class LoggedInPage(tk.Frame):
         conn = self.controller.get_db_connection()
         cursor = conn.cursor()
         try:
-            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
+            query = "SELECT item_id, item_name, item_description, item_price, post_date FROM items WHERE category = %s"
             cursor.execute(query, (category,))
             results = cursor.fetchall()
             self.controller.frames["SearchPage"].display_results(results)
@@ -237,7 +238,8 @@ class ReviewPage(tk.Frame):
         self.review_text.pack()
 
         tk.Button(self, text="Submit Review", command=self.submit_review).pack()
-    
+        tk.Button(self, text="Go Back", command=self.go_back).pack(pady=10)
+
     def submit_review(self):
         if not self.item_id:
             messagebox.showerror("Error", "Item not selected")
@@ -276,9 +278,9 @@ class ReviewPage(tk.Frame):
 
             # Insert the review
             cursor.execute("""
-                INSERT INTO reviews (item_id, username, rating, review_text, review_date)
+                INSERT INTO reviews (username, item_id, rating, description, review_date)
                 VALUES (%s, %s, %s, %s, NOW())
-            """, (self.item_id, current_user, rating, review))
+            """, (current_user, self.item_id, rating, review))
             conn.commit()
             messagebox.showinfo("Success", "Review submitted successfully!")
 
@@ -287,3 +289,5 @@ class ReviewPage(tk.Frame):
             messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
+    def go_back(self):
+        self.controller.show_frame("SearchPage")
