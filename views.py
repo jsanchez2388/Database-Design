@@ -12,24 +12,8 @@ class StartPage(tk.Frame):
 
     def create_widgets(self):
         tk.Label(self, text="Start Page", font=("Arial", 20)).pack(pady=10, padx=10)
-        tk.Button(self, text="Login", width=20, command=lambda: self.controller.show_frame("LoginPage")).pack()
-        tk.Button(self, text="Register", width=20, command=lambda: self.controller.show_frame("RegisterPage")).pack()
-        tk.Button(self, text="Search by Category", width=20, command=lambda: self.controller.show_frame("SearchPage")).pack()
-
-    def search_items(self):
-        category = self.category_entry.get()
-        conn = self.controller.get_db_connection()
-        cursor = conn.cursor()
-        try:
-            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
-            cursor.execute(query, (category,))
-            results = cursor.fetchall()
-            self.controller.frames["SearchPage"].display_results(results)
-            self.controller.show_frame("SearchPage")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-        finally:
-            cursor.close()
+        tk.Button(self, text="Login", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("LoginPage")).pack()
+        tk.Button(self, text="Register", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("RegisterPage")).pack()
 
 
 
@@ -45,8 +29,8 @@ class LoginPage(tk.Frame):
         self.username_entry.pack()
         self.password_entry = tk.Entry(self, show="*", font=("Arial", 16))
         self.password_entry.pack()
-        tk.Button(self, text="Login", command=self.validate_login).pack()
-        tk.Button(self, text="Back", command=lambda: self.controller.show_frame("StartPage")).pack()
+        tk.Button(self, text="Login", font=("Arial", 16), command=self.validate_login).pack()
+        tk.Button(self, text="Back", font=("Arial", 16), command=lambda: self.controller.show_frame("StartPage")).pack()
 
     def validate_login(self):
         conn = self.controller.get_db_connection()
@@ -133,7 +117,7 @@ class SearchPage(tk.Frame):
         self.result_tree.heading("Date", text="Date")
         self.result_tree.pack(pady=10, padx=10)
 
-        tk.Button(self, text="Back", command=lambda: self.controller.show_frame("StartPage")).pack(pady=10)
+        tk.Button(self, text="Back", command=lambda: self.controller.show_frame("LoggedInPage")).pack(pady=10)
 
     def search_items(self):
         category = self.category_entry.get()
@@ -168,7 +152,9 @@ class LoggedInPage(tk.Frame):
         self.welcome_label = tk.Label(self, font=("Arial", 20))
         self.welcome_label.pack(pady=10, padx=10)
         tk.Button(self, text="Insert New Item", font=("Arial", 16), command=self.insert_item).pack()
+        tk.Button(self, text="Search by Category", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("SearchPage")).pack()
         tk.Button(self, text="Log Out", font=("Arial", 16), command=self.logout).pack()
+        
 
     def set_user(self, user):
         self.user = user
@@ -198,6 +184,21 @@ class LoggedInPage(tk.Frame):
         self.controller.frames[InsertItemPage.__name__].set_username(self.user[0])
         # Show the InsertItemPage
         self.controller.show_frame("InsertItemPage")
+
+    def search_items(self):
+        category = self.category_entry.get()
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
+            cursor.execute(query, (category,))
+            results = cursor.fetchall()
+            self.controller.frames["SearchPage"].display_results(results)
+            self.controller.show_frame("SearchPage")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
 
     def logout(self):
         self.user = None
