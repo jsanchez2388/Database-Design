@@ -15,8 +15,6 @@ class StartPage(tk.Frame):
         tk.Button(self, text="Login", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("LoginPage")).pack()
         tk.Button(self, text="Register", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("RegisterPage")).pack()
 
-
-
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -109,6 +107,7 @@ class SearchPage(tk.Frame):
         self.category_entry = tk.Entry(self, font=("Arial", 16))
         self.category_entry.pack()
         tk.Button(self, text="Search", command=self.search_items).pack()
+        tk.Button(self, text="Write Review", command=self.write_review).pack()
 
         self.result_tree = ttk.Treeview(self, columns=("Name", "Description", "Price", "Date"), show="headings")
         self.result_tree.heading("Name", text="Name")
@@ -140,6 +139,15 @@ class SearchPage(tk.Frame):
         else:
             for row in results:
                 self.result_tree.insert("", "end", values=row)
+    
+    def write_review(self):
+        selected_item = self.result_tree.focus()
+        if selected_item == "":
+            messagebox.showerror("Error", "No item selected")
+            return
+        item_details = self.result_tree.item(selected_item)['values']
+        if item_details:
+            self.controller.show_review_page(item_details[0])
 
 class LoggedInPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -206,3 +214,76 @@ class LoggedInPage(tk.Frame):
             widget.destroy()
         self.create_widgets()
         self.controller.show_frame("StartPage")
+
+class ReviewPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+        self.item_id = None  # This will be set when the page is shown
+        self.create_widgets()
+
+    def set_item_id(self, item_id):
+        self.item_id = item_id
+
+    def create_widgets(self):
+        tk.Label(self, text="Write a Review", font=("Arial", 20)).pack(pady=10)
+        tk.Label(self, text="Rating:", font=("Arial", 16)).pack()
+        self.rating_var = tk.StringVar()
+        self.rating_dropdown = tk.OptionMenu(self, self.rating_var, "excellent", "good", "fair", "poor")
+        self.rating_dropdown.pack()
+
+        tk.Label(self, text="Review:", font=("Arial", 16)).pack()
+        self.review_text = tk.Text(self, height=4, width=50)
+        self.review_text.pack()
+
+        tk.Button(self, text="Submit Review", command=self.submit_review).pack()
+    
+    def submit_review(self):
+        if not self.item_id:
+            messagebox.showerror("Error", "Item not selected")
+            return
+
+        rating = self.rating_var.get()
+        review = self.review_text.get("1.0", "end-1c")
+
+        # Get the current user
+        current_user = self.controller.frames["LoggedInPage"].user[0]  # Assuming the first element is the username
+
+        # Start a connection to the database
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+
+        try:
+            # Check if the item belongs to the user
+            cursor.execute("SELECT username FROM items WHERE item_id = %s", (self.item_id,))
+            result = cursor.fetchone()
+            if not result:
+                messagebox.showerror("Error", "Item not found")
+                return
+            if result[0] == current_user:
+                messagebox.showwarning("Warning", "You cannot review your own item!")
+                return
+
+            # Check if the user has already submitted 3 reviews today
+            cursor.execute("""
+                SELECT COUNT(*) FROM reviews
+                WHERE username = %s AND DATE(review_date) = CURDATE()
+            """, (current_user,))
+            review_count = cursor.fetchone()[0]
+            if review_count >= 3:
+                messagebox.showwarning("Warning", "You have already submitted 3 reviews today.")
+                return
+
+            # Insert the review
+            cursor.execute("""
+                INSERT INTO reviews (item_id, username, rating, review_text, review_date)
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (self.item_id, current_user, rating, review))
+            conn.commit()
+            messagebox.showinfo("Success", "Review submitted successfully!")
+
+        except Exception as e:
+            conn.rollback()  # Rollback the transaction on error
+            messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
