@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 from user_management import check_user, register_user
 from item_management import InsertItemPage
 
@@ -13,6 +14,23 @@ class StartPage(tk.Frame):
         tk.Label(self, text="Start Page", font=("Arial", 20)).pack(pady=10, padx=10)
         tk.Button(self, text="Login", width=20, command=lambda: self.controller.show_frame("LoginPage")).pack()
         tk.Button(self, text="Register", width=20, command=lambda: self.controller.show_frame("RegisterPage")).pack()
+        tk.Button(self, text="Search by Category", width=20, command=lambda: self.controller.show_frame("SearchPage")).pack()
+
+    def search_items(self):
+        category = self.category_entry.get()
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
+            cursor.execute(query, (category,))
+            results = cursor.fetchall()
+            self.controller.frames["SearchPage"].display_results(results)
+            self.controller.show_frame("SearchPage")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+
 
 
 class LoginPage(tk.Frame):
@@ -94,6 +112,50 @@ class RegisterPage(tk.Frame):
             messagebox.showerror("Error", "Email already registered!")
         else:
             messagebox.showerror("Error", "An error occurred during registration!")
+
+
+class SearchPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+        self.create_widgets()
+
+    def create_widgets(self):
+        tk.Label(self, text="Search Items by Category", font=("Arial", 20)).pack(pady=10, padx=10)
+        self.category_entry = tk.Entry(self, font=("Arial", 16))
+        self.category_entry.pack()
+        tk.Button(self, text="Search", command=self.search_items).pack()
+
+        self.result_tree = ttk.Treeview(self, columns=("Name", "Description", "Price", "Date"), show="headings")
+        self.result_tree.heading("Name", text="Name")
+        self.result_tree.heading("Description", text="Description")
+        self.result_tree.heading("Price", text="Price")
+        self.result_tree.heading("Date", text="Date")
+        self.result_tree.pack(pady=10, padx=10)
+
+        tk.Button(self, text="Back", command=lambda: self.controller.show_frame("StartPage")).pack(pady=10)
+
+    def search_items(self):
+        category = self.category_entry.get()
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = "SELECT item_name, item_description, item_price, post_date FROM items WHERE category = %s"
+            cursor.execute(query, (category,))
+            results = cursor.fetchall()
+            self.display_results(results)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+
+    def display_results(self, results):
+        self.result_tree.delete(*self.result_tree.get_children())
+        if not results:
+            self.result_tree.insert("", "end", values=("No items found for this category.", "", "", ""))
+        else:
+            for row in results:
+                self.result_tree.insert("", "end", values=row)
 
 class LoggedInPage(tk.Frame):
     def __init__(self, parent, controller):

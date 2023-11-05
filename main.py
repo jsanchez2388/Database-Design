@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from dbconnection import create_database_connection
-from views import StartPage, LoginPage, RegisterPage, LoggedInPage
+from views import StartPage, LoginPage, RegisterPage, LoggedInPage, SearchPage
 from item_management import InsertItemPage
 
 class MainApp(tk.Tk):
@@ -22,10 +22,10 @@ class MainApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, LoginPage, RegisterPage, LoggedInPage, InsertItemPage):
-            page_name = F.__name__  # Use the class name as a string
+        for F in (StartPage, LoginPage, RegisterPage, LoggedInPage, InsertItemPage, SearchPage):
+            page_name = F.__name__
             frame = F(parent=container, controller=self)
-            self.frames[page_name] = frame  # Use the class name string as the key
+            self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame("StartPage")
@@ -35,6 +35,7 @@ class MainApp(tk.Tk):
         self.frames[InsertItemPage.__name__].grid(row=0, column=0, sticky="nsew")
 
         self.show_frame("StartPage")
+
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
