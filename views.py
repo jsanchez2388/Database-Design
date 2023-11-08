@@ -108,6 +108,8 @@ class SearchPage(tk.Frame):
         self.category_entry.pack()
         tk.Button(self, text="Search", command=self.search_items).pack()
         tk.Button(self, text="Write Review", command=self.write_review).pack()
+        tk.Button(self, text="Initialize Database", command=self.initialize_database).pack()
+
 
         self.result_tree = ttk.Treeview(self, columns=("ID", "Name", "Description", "Price", "Date"), show="headings")
         self.result_tree.heading("ID", text="ID")
@@ -118,6 +120,36 @@ class SearchPage(tk.Frame):
         self.result_tree.pack(pady=10, padx=10)
 
         tk.Button(self, text="Back", command=lambda: self.controller.show_frame("LoggedInPage")).pack(pady=10)
+    def initialize_database(self):
+        #conn = self.get_db_connection()
+        #cursor = conn.cursor()
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+    
+    # Insert tuples into tables
+        insert_statements = [
+            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user4', 'pass4', 'Alice', 'Smith', 'alice@example.com');",
+            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user5', 'pass5', 'Charlie', 'Brown', 'charlie@example.com');",
+            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user6', 'pass6', 'David', 'Davis', 'david@example.com');",
+            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user7', 'pass7', 'Eve', 'Johnson', 'eve@example.com');",
+            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user8', 'pass8', 'Frank', 'Taylor', 'frank@example.com');",
+            ]
+
+        try:
+            #for statement in drop_statements:
+                #cursor.execute(statement)
+            #for statement in create_statements:
+                #cursor.execute(statement)
+            for statement in insert_statements:
+                cursor.execute(statement) 
+            conn.commit()
+            messagebox.showinfo("Database Initialized", "The database has been initialized successfully.")
+        except Exception as e:
+            conn.rollback()
+            messagebox.showerror("Initialization Error", str(e))
+        finally:
+            cursor.close()
+
 
     def search_items(self):
         category = self.category_entry.get()
