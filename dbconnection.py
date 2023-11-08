@@ -12,13 +12,23 @@ def create_database_connection():
     """
     try:
         # Establish a connection to the MySQL database using provided credentials and database name
+
+        connection = mysql.connector.connect(
+            host='localhost',         # Server where the database is hosted
+            user='root',              # Username to connect to the database
+            password='CsunCS2023#',  # Password to connect to the database
+            database='440phase2'       # Name of the database
+        )
+
+
+        """
         connection = mysql.connector.connect(
             host='localhost',         # Server where the database is hosted
             user='root',              # Username to connect to the database
             password='ClassOf2024!',  # Password to connect to the database
             database='project1'       # Name of the database
         )
-        """
+
         mysql.connector.connect(
             host="localhost",
             user="root",

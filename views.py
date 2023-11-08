@@ -298,7 +298,7 @@ class ReviewPage(tk.Frame):
                 messagebox.showwarning("Warning", "You cannot review your own item!")
                 return
 
-            # Check if the user has already submitted 3 reviews today
+            # Check if the user has already submitted 3 reviews today.
             cursor.execute("""
                 SELECT COUNT(*) FROM reviews
                 WHERE username = %s AND DATE(review_date) = CURDATE()
