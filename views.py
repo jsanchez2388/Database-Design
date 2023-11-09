@@ -1,4 +1,5 @@
 import tkinter as tk
+import bcrypt
 from tkinter import messagebox
 from tkinter import ttk
 from user_management import check_user, register_user
@@ -14,6 +15,107 @@ class StartPage(tk.Frame):
         tk.Label(self, text="Start Page", font=("Arial", 20)).pack(pady=10, padx=10)
         tk.Button(self, text="Login", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("LoginPage")).pack()
         tk.Button(self, text="Register", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("RegisterPage")).pack()
+        tk.Button(self, text="Initialize Database", command=self.initialize_database).pack()
+    
+    def initialize_database(self):
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        # Drop tables if they exist to recreate them
+        drop_statements = [
+            "DROP TABLE IF EXISTS reviews;",
+            "DROP TABLE IF EXISTS items;",
+            "DROP TABLE IF EXISTS users;"
+        ]
+        # Create table statements
+        create_statements = [
+            """
+            CREATE TABLE users (
+                username VARCHAR(255) PRIMARY KEY,
+                password VARCHAR(255) NOT NULL,
+                firstName VARCHAR(255) NOT NULL,
+                lastName VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL
+            );
+            """,
+        """
+        CREATE TABLE items (
+            item_id INT NOT NULL AUTO_INCREMENT,
+            username VARCHAR(255) NOT NULL,
+            item_name VARCHAR(255) NOT NULL,
+            item_description TEXT,
+            category TEXT,
+            item_price DECIMAL(10, 2),
+            post_date DATE NOT NULL,
+            PRIMARY KEY (item_id),
+            FOREIGN KEY (username) REFERENCES users(username)
+        );
+        """, 
+            """
+        CREATE TABLE reviews (
+            review_id INT NOT NULL AUTO_INCREMENT,
+            username VARCHAR(255) NOT NULL,
+            item_id INT NOT NULL,
+            rating ENUM('excellent', 'good', 'fair', 'poor') NOT NULL,
+            description MEDIUMTEXT,
+            review_date DATE,
+            PRIMARY KEY (review_id),
+            FOREIGN KEY (username) REFERENCES users(username),
+            FOREIGN KEY (item_id) REFERENCES items(item_id)
+        );
+
+        """
+        ]
+
+        # Define your plain-text passwords
+        passwords = ['pass4', 'pass5', 'pass6', 'pass7', 'pass8']
+
+        # Hash passwords
+        hashed_passwords = [bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) for password in passwords]
+
+        # Create INSERT statements with the hashed passwords
+        insert_statements = [
+            f"INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user4', '{hashed_passwords[0].decode('utf-8')}', 'Alice', 'Smith', 'alice@example.com');",
+            f"INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user5', '{hashed_passwords[1].decode('utf-8')}', 'Charlie', 'Brown', 'charlie@example.com');",
+            f"INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user6', '{hashed_passwords[2].decode('utf-8')}', 'David', 'Davis', 'david@example.com');",
+            f"INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user7', '{hashed_passwords[3].decode('utf-8')}', 'Eve', 'Johnson', 'eve@example.com');",
+            f"INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user8', '{hashed_passwords[4].decode('utf-8')}', 'Frank', 'Taylor', 'frank@example.com');",
+        ]
+        # Additional insert statements for items table
+        insert_items = [
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Gadget Pro', 'Latest tech gadget', 'Electronics', 299.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user5', 'Mountain Bike', 'Off-road mountain bike', 'Sports', 489.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user6', 'Coffee Maker', 'Brews coffee in minutes', 'Appliances', 89.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user7', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Business Suit', 'Professional attire', 'Clothing', 159.99, CURDATE());",
+        ]
+
+        # Additional insert statements for reviews table
+        insert_reviews = [
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'This gadget is a game-changer!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user6', 2, 'good', 'Great bike for the price.', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user7', 3, 'fair', 'Good but not the best coffee.', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 4, 'excellent', 'Best yoga mat I have ever used!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user8', 5, 'poor', 'The suit was not as expected.', CURDATE());",
+        ]
+
+        # Combine them with the previous user insert statements
+        insert_statements.extend(insert_items)
+        insert_statements.extend(insert_reviews)
+
+        try:
+            for statement in drop_statements:
+                cursor.execute(statement)
+            for statement in create_statements:
+                cursor.execute(statement)
+            for statement in insert_statements:
+                cursor.execute(statement) 
+            conn.commit()
+            messagebox.showinfo("Database Initialized", "The database has been initialized successfully.")
+        except Exception as e:
+            conn.rollback()
+            messagebox.showerror("Initialization Error", str(e))
+        finally:
+            cursor.close()
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -108,7 +210,7 @@ class SearchPage(tk.Frame):
         self.category_entry.pack()
         tk.Button(self, text="Search", command=self.search_items).pack()
         tk.Button(self, text="Write Review", command=self.write_review).pack()
-        tk.Button(self, text="Initialize Database", command=self.initialize_database).pack()
+        
 
 
         self.result_tree = ttk.Treeview(self, columns=("ID", "Name", "Description", "Price", "Date"), show="headings")
@@ -120,35 +222,6 @@ class SearchPage(tk.Frame):
         self.result_tree.pack(pady=10, padx=10)
 
         tk.Button(self, text="Back", command=lambda: self.controller.show_frame("LoggedInPage")).pack(pady=10)
-    def initialize_database(self):
-        #conn = self.get_db_connection()
-        #cursor = conn.cursor()
-        conn = self.controller.get_db_connection()
-        cursor = conn.cursor()
-    
-    # Insert tuples into tables
-        insert_statements = [
-            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user4', 'pass4', 'Alice', 'Smith', 'alice@example.com');",
-            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user5', 'pass5', 'Charlie', 'Brown', 'charlie@example.com');",
-            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user6', 'pass6', 'David', 'Davis', 'david@example.com');",
-            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user7', 'pass7', 'Eve', 'Johnson', 'eve@example.com');",
-            "INSERT INTO users (username, password, firstName, lastName, email) VALUES ('user8', 'pass8', 'Frank', 'Taylor', 'frank@example.com');",
-            ]
-
-        try:
-            #for statement in drop_statements:
-                #cursor.execute(statement)
-            #for statement in create_statements:
-                #cursor.execute(statement)
-            for statement in insert_statements:
-                cursor.execute(statement) 
-            conn.commit()
-            messagebox.showinfo("Database Initialized", "The database has been initialized successfully.")
-        except Exception as e:
-            conn.rollback()
-            messagebox.showerror("Initialization Error", str(e))
-        finally:
-            cursor.close()
 
 
     def search_items(self):
