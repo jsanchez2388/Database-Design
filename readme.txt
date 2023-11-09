@@ -8,8 +8,7 @@ Josue Sanchez - Create initial GUI template.
                 and searching for an item by category
 
 Abigail Macias 
-             - Logout functionality.
-             - Video Demonstration and Upload.
+             - Step 4: Implemented the database initialization           
 
 Arfan Myint
                 - Worked on the Frontend from initial GUI template
