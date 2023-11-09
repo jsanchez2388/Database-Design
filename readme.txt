@@ -6,8 +6,8 @@ Josue Sanchez
                 and searching for an item by category
 
 Abigail Macias 
-             - Step 4: Implemented the database initialization
-             - Recorded video demonstration of the project           
+             - Step 4: Implemented the database initialization   
+             - Video Demo and Upload        
 
 Arfan Myint
                 - Implemented the search functionality for the database
