@@ -11,9 +11,9 @@ Abigail Macias
              - Step 4: Implemented the database initialization           
 
 Arfan Myint
-                - Worked on the Frontend from initial GUI template
-                - Integrated frontend with database
-                - Worked on the backend
-                - Fixed issues with backend
+                - Implemented the search functionality for the database
+                - Helped with debugging some of the issues in the code
+                - Added buttons to the GUI and make it easier for UX
+
 
 Link to Demo - https://www.youtube.com/watch?v=5n2ZC4bz0Pw
