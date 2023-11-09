@@ -8,7 +8,8 @@ Josue Sanchez - Create initial GUI template.
                 and searching for an item by category
 
 Abigail Macias 
-             - Step 4: Implemented the database initialization           
+             - Step 4: Implemented the database initialization   
+             - Video Demo and Upload        
 
 Arfan Myint
                 - Implemented the search functionality for the database
