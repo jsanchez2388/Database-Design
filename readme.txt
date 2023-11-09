@@ -1,6 +1,4 @@
-Josue Sanchez - Create initial GUI template. 
-              - Made code modular by spliting functionality into different files
-              - Added encryption functionality to help keep passwords private
+Josue Sanchez 
               - Added insert item functionality
               - Added Item Review functionality
               - Refactored code to convert pages to Classes
@@ -8,7 +6,8 @@ Josue Sanchez - Create initial GUI template.
                 and searching for an item by category
 
 Abigail Macias 
-             - Step 4: Implemented the database initialization           
+             - Step 4: Implemented the database initialization
+             - Recorded video demonstration of the project           
 
 Arfan Myint
                 - Implemented the search functionality for the database
@@ -16,4 +15,4 @@ Arfan Myint
                 - Added buttons to the GUI and make it easier for UX
 
 
-Link to Demo - https://www.youtube.com/watch?v=5n2ZC4bz0Pw
+Link to Demo - https://youtu.be/0J-33gaqFIY?si=tSRF7wmcA6L4dH16
