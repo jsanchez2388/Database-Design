@@ -267,8 +267,11 @@ class LoggedInPage(tk.Frame):
         self.welcome_label.pack(pady=10, padx=10)
         tk.Button(self, text="Insert New Item", font=("Arial", 16), command=self.insert_item).pack()
         tk.Button(self, text="Search by Category", font=("Arial", 16), width=20, command=lambda: self.controller.show_frame("SearchPage")).pack()
+        tk.Button(self, text="Perform Query", font=("Arial", 16), command=self.perform_query).pack()
         tk.Button(self, text="Log Out", font=("Arial", 16), command=self.logout).pack()
-        
+    
+    def perform_query(self):
+        self.controller.show_frame("QueryPage")
 
     def set_user(self, user):
         self.user = user
@@ -396,3 +399,26 @@ class ReviewPage(tk.Frame):
             cursor.close()
     def go_back(self):
         self.controller.show_frame("SearchPage")
+
+class QueryPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+        self.create_widgets()
+    
+    def create_widgets(self):
+        tk.Label(self, text="Advance Search", font=("Arial", 20)).pack(pady=10)
+        
+        # Buttons need to be updated to run each query
+        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 16), width=20, command=self.go_back).pack()
+        tk.Button(self, text="Specific User Comments", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Most Items on Date", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Favorite User", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="No Excellent Item", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="No Poor Reviews", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="All Poor Review", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="No Poor Items", font=("Arial", 16), command=self.go_back).pack()
+    
+    def go_back(self):
+        self.controller.show_frame("LoggedInPage")

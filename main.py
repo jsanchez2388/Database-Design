@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from dbconnection import create_database_connection
-from views import StartPage, LoginPage, RegisterPage, LoggedInPage, SearchPage, ReviewPage
+from views import StartPage, LoginPage, RegisterPage, LoggedInPage, SearchPage, ReviewPage, QueryPage
 from item_management import InsertItemPage
 
 class MainApp(tk.Tk):
@@ -36,6 +36,9 @@ class MainApp(tk.Tk):
 
         self.frames[ReviewPage.__name__] = ReviewPage(parent=container, controller=self)
         self.frames[ReviewPage.__name__].grid(row=0, column=0, sticky="nsew")
+
+        self.frames[QueryPage.__name__] = QueryPage(parent=container, controller=self)
+        self.frames[QueryPage.__name__].grid(row=0, column=0, sticky="nsew")
 
         self.show_frame("StartPage")
 
