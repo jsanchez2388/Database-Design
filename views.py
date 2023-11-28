@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import bcrypt
 from tkinter import messagebox
 from tkinter import ttk
@@ -410,7 +411,7 @@ class QueryPage(tk.Frame):
         tk.Label(self, text="Advance Search", font=("Arial", 20)).pack(pady=10)
         
         # Buttons need to be updated to run each query
-        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.most_expensive_items).pack()
         tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 16), width=20, command=self.go_back).pack()
         tk.Button(self, text="Specific User Comments", font=("Arial", 16), command=self.go_back).pack()
         tk.Button(self, text="Most Items on Date", font=("Arial", 16), command=self.go_back).pack()
@@ -419,6 +420,52 @@ class QueryPage(tk.Frame):
         tk.Button(self, text="No Poor Reviews", font=("Arial", 16), command=self.go_back).pack()
         tk.Button(self, text="All Poor Review", font=("Arial", 16), command=self.go_back).pack()
         tk.Button(self, text="No Poor Items", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).pack()
+
+        # Treeview for displaying the query results
+        self.results_tree = ttk.Treeview(self, columns=("Category", "Item Name", "Price"), show="headings")
+        self.results_tree.heading("Category", text="Category")
+        self.results_tree.heading("Item Name", text="Item Name")
+        self.results_tree.heading("Price", text="Price")
+        self.results_tree.pack(pady=10, padx=10)
+
+    def most_expensive_items(self):
+        # Clear previous results
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # SQL query
+        query = """
+        SELECT 
+            i.category, 
+            i.item_name, 
+            i.item_price
+        FROM 
+            items i
+        INNER JOIN (
+            SELECT 
+                category, 
+                MAX(item_price) AS max_price
+            FROM 
+                items
+            GROUP BY 
+                category
+        ) AS max_prices
+        ON 
+            i.category = max_prices.category AND i.item_price = max_prices.max_price
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
     
     def go_back(self):
         self.controller.show_frame("LoggedInPage")
