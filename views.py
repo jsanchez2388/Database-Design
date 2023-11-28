@@ -88,6 +88,7 @@ class StartPage(tk.Frame):
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user6', 'Coffee Maker', 'Brews coffee in minutes', 'Appliances', 89.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user7', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Business Suit', 'Professional attire', 'Clothing', 159.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Gadget Pro', 'E-bike', 'Sports', 399.99, CURDATE());",
         ]
 
         # Additional insert statements for reviews table
@@ -408,28 +409,48 @@ class QueryPage(tk.Frame):
         self.create_widgets()
     
     def create_widgets(self):
-        tk.Label(self, text="Advance Search", font=("Arial", 20)).pack(pady=10)
+        tk.Label(self, text="Advance Search", font=("Arial", 20)).grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+        
+        # Category input fields
+        tk.Label(self, text="Category X:", font=("Arial", 16)).grid(row=1, column=0, padx=5, pady=5, sticky='e')
+        self.category_x_entry = tk.Entry(self, font=("Arial", 16))
+        self.category_x_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
+
+        tk.Label(self, text="Category Y:", font=("Arial", 16)).grid(row=2, column=0, padx=5, pady=5, sticky='e')
+        self.category_y_entry = tk.Entry(self, font=("Arial", 16))
+        self.category_y_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
         
         # Buttons need to be updated to run each query
-        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.most_expensive_items).pack()
-        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 16), width=20, command=self.go_back).pack()
-        tk.Button(self, text="Specific User Comments", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="Most Items on Date", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="Favorite User", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="No Excellent Item", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="No Poor Reviews", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="All Poor Review", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="No Poor Items", font=("Arial", 16), command=self.go_back).pack()
-        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).pack()
+        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.most_expensive_items).grid(row=3, column=0, padx=5, pady=5)
+        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 16), width=20, command=self.search_users_same_day_multi_category).grid(row=3, column=1, padx=5, pady=5)
+        tk.Button(self, text="Specific User Comments", font=("Arial", 16), command=self.go_back).grid(row=3, column=2, padx=5, pady=5)
+        tk.Button(self, text="Most Items on Date", font=("Arial", 16), command=self.go_back).grid(row=4, column=0, padx=5, pady=5)
+        tk.Button(self, text="Favorite User", font=("Arial", 16), command=self.go_back).grid(row=4, column=1, padx=5, pady=5)
+        tk.Button(self, text="No Excellent Item", font=("Arial", 16), command=self.go_back).grid(row=4, column=2, padx=5, pady=5)
+        tk.Button(self, text="No Poor Reviews", font=("Arial", 16), command=self.go_back).grid(row=5, column=0, padx=5, pady=5)
+        tk.Button(self, text="All Poor Review", font=("Arial", 16), command=self.go_back).grid(row=5, column=1, padx=5, pady=5)
+        tk.Button(self, text="No Poor Items", font=("Arial", 16), command=self.go_back).grid(row=5, column=2, padx=5, pady=5)
 
         # Treeview for displaying the query results
-        self.results_tree = ttk.Treeview(self, columns=("Category", "Item Name", "Price"), show="headings")
-        self.results_tree.heading("Category", text="Category")
-        self.results_tree.heading("Item Name", text="Item Name")
-        self.results_tree.heading("Price", text="Price")
-        self.results_tree.pack(pady=10, padx=10)
+        self.results_tree = ttk.Treeview(self)
+        self.results_tree.grid(row=6, column=0, columnspan=3, pady=10, padx=10, sticky="ew")
+        
+        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=7, column=1, pady=10)
+
+    def configure_treeview(self, columns, headings):
+        """ Configure the treeview columns and headings """
+        self.results_tree.config(columns=columns)
+        for col in columns:
+            self.results_tree.heading(col, text=headings[col])
+            self.results_tree.column(col, anchor='center')
+        # Clear any existing columns
+        self.results_tree.delete(*self.results_tree.get_children())
 
     def most_expensive_items(self):
+        # Configure Treeview for this query
+        self.configure_treeview(["Category", "Item Name", "Price"], 
+                                {"Category": "Category", "Item Name": "Item Name", "Price": "Price"})
+        
         # Clear previous results
         self.results_tree.delete(*self.results_tree.get_children())
 
@@ -459,6 +480,40 @@ class QueryPage(tk.Frame):
         cursor = conn.cursor()
         try:
             cursor.execute(query)
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
+    
+    def search_users_same_day_multi_category(self):
+        # Configure Treeview for this query
+        self.configure_treeview(["Username"], {"Username": "Username"})
+
+        category_x = self.category_x_entry.get()
+        category_y = self.category_y_entry.get()
+
+        # Clear previous results
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # SQL Query
+        query = """
+        SELECT DISTINCT a.username
+        FROM items a, items b
+        WHERE a.username = b.username
+        AND a.post_date = b.post_date
+        AND a.item_id != b.item_id
+        AND a.category = %s
+        AND b.category = %s
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query, (category_x, category_y))
             results = cursor.fetchall()
             for row in results:
                 self.results_tree.insert("", "end", values=row)
