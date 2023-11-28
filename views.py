@@ -409,7 +409,7 @@ class QueryPage(tk.Frame):
         self.create_widgets()
     
     def create_widgets(self):
-        tk.Label(self, text="Advance Search", font=("Arial", 20)).grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+        tk.Label(self, text="Advance Search", font=("Arial", 20)).grid(row=0, column=0, columnspan=5, padx=10, pady=10)
         
         # Category input fields
         tk.Label(self, text="Category X:", font=("Arial", 16)).grid(row=1, column=0, padx=5, pady=5, sticky='e')
@@ -421,38 +421,42 @@ class QueryPage(tk.Frame):
         self.category_y_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
         
         # Buttons need to be updated to run each query
-        tk.Button(self, text="Most Expensive", font=("Arial", 16), command=self.most_expensive_items).grid(row=3, column=0, padx=5, pady=5)
-        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 16), width=20, command=self.search_users_same_day_multi_category).grid(row=3, column=1, padx=5, pady=5)
-        tk.Button(self, text="Specific User Comments", font=("Arial", 16), command=self.go_back).grid(row=3, column=2, padx=5, pady=5)
-        tk.Button(self, text="Most Items on Date", font=("Arial", 16), command=self.go_back).grid(row=4, column=0, padx=5, pady=5)
-        tk.Button(self, text="Favorite User", font=("Arial", 16), command=self.go_back).grid(row=4, column=1, padx=5, pady=5)
-        tk.Button(self, text="No Excellent Item", font=("Arial", 16), command=self.go_back).grid(row=4, column=2, padx=5, pady=5)
-        tk.Button(self, text="No Poor Reviews", font=("Arial", 16), command=self.go_back).grid(row=5, column=0, padx=5, pady=5)
-        tk.Button(self, text="All Poor Review", font=("Arial", 16), command=self.go_back).grid(row=5, column=1, padx=5, pady=5)
-        tk.Button(self, text="No Poor Items", font=("Arial", 16), command=self.go_back).grid(row=5, column=2, padx=5, pady=5)
+        tk.Button(self, text="Most Expensive", font=("Arial", 14), command=self.most_expensive_items).grid(row=3, column=0, padx=5, pady=5)
+        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 14), width=20, command=self.search_users_same_day_multi_category).grid(row=3, column=1, padx=5, pady=5)
+        tk.Button(self, text="Specific User Comments", font=("Arial", 14), command=self.go_back).grid(row=3, column=2, padx=5, pady=5)
+        tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=self.go_back).grid(row=3, column=3, padx=5, pady=5)
+        tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=3, column=4, padx=5, pady=5)
+        tk.Button(self, text="No Excellent Item", font=("Arial", 14), command=self.go_back).grid(row=4, column=0, padx=5, pady=5)
+        tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.go_back).grid(row=4, column=1, padx=5, pady=5)
+        tk.Button(self, text="All Poor Review", font=("Arial", 14), command=self.go_back).grid(row=4, column=2, padx=5, pady=5)
+        tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.go_back).grid(row=4, column=3, padx=5, pady=5)
+        tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.go_back).grid(row=4, column=4, padx=5, pady=5)
 
         # Treeview for displaying the query results
         self.results_tree = ttk.Treeview(self)
-        self.results_tree.grid(row=6, column=0, columnspan=3, pady=10, padx=10, sticky="ew")
+        self.results_tree.grid(row=5, column=0, columnspan=5, pady=10, padx=10, sticky="ew")
         
-        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=7, column=1, pady=10)
+        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=6, column=2, pady=10)
 
     def configure_treeview(self, columns, headings):
         """ Configure the treeview columns and headings """
-        self.results_tree.config(columns=columns)
-        for col in columns:
-            self.results_tree.heading(col, text=headings[col])
-            self.results_tree.column(col, anchor='center')
         # Clear any existing columns
         self.results_tree.delete(*self.results_tree.get_children())
 
+        # Configure the tree column (the invisible first column)
+        self.results_tree.column("#0", width=0, stretch=tk.NO)
+
+        # Configure the other columns
+        self.results_tree.config(columns=columns)
+        for col in columns:
+            self.results_tree.heading(col, text=headings[col])
+            self.results_tree.column(col, anchor="center", width=100)
+
+        
     def most_expensive_items(self):
         # Configure Treeview for this query
         self.configure_treeview(["Category", "Item Name", "Price"], 
                                 {"Category": "Category", "Item Name": "Item Name", "Price": "Price"})
-        
-        # Clear previous results
-        self.results_tree.delete(*self.results_tree.get_children())
 
         # SQL query
         query = """
