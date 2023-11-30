@@ -661,6 +661,37 @@ class QueryPage(tk.Frame):
             tk.messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
+    
+    def list_excellent_review_pairs(self):
+        # Configure the treeview for this specific query
+        self.configure_treeview(["User A", "User B"], {"User A": "User A", "User B": "User B"})
 
+        # Clear existing data in the treeview
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # Establish a connection and execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+            SELECT DISTINCT r1.username AS UserA, r2.username AS UserB
+            FROM reviews r1
+            INNER JOIN reviews r2 ON r1.username != r2.username AND r1.rating = 'excellent' AND r2.rating = 'excellent'
+            INNER JOIN items i1 ON r1.item_id = i1.item_id AND i1.username = r2.username
+            INNER JOIN items i2 ON r2.item_id = i2.item_id AND i2.username = r1.username
+            GROUP BY r1.username, r2.username
+            HAVING COUNT(DISTINCT r1.item_id) = COUNT(DISTINCT i2.item_id) AND COUNT(DISTINCT r2.item_id) = COUNT(DISTINCT i1.item_id)
+            """
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+            # Display the results in the treeview
+            for pair in results:
+                self.results_tree.insert("", "end", values=pair)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            
     def go_back(self):
         self.controller.show_frame("LoggedInPage")
