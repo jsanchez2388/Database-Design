@@ -429,10 +429,10 @@ class QueryPage(tk.Frame):
         tk.Button(self, text="Specific User Comments", font=("Arial", 14), command=self.go_back).grid(row=3, column=2, padx=5, pady=5)
         tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=self.go_back).grid(row=3, column=3, padx=5, pady=5)
         tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=3, column=4, padx=5, pady=5)
-        tk.Button(self, text="No Excellent Item", font=("Arial", 14), command=self.go_back).grid(row=4, column=0, padx=5, pady=5)
+        tk.Button(self, text="No Excellent Items", font=("Arial", 14), command=self.no_excellent_items).grid(row=4, column=0, padx=5, pady=5)
         tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=4, column=1, padx=5, pady=5)
-        tk.Button(self, text="All Poor Review", font=("Arial", 14), command=self.go_back).grid(row=4, column=2, padx=5, pady=5)
-        tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.go_back).grid(row=4, column=3, padx=5, pady=5)
+        tk.Button(self, text="All Poor Reviews", font=("Arial", 14), command=self.all_poor_reviews).grid(row=4, column=2, padx=5, pady=5)
+        tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.no_poor_items).grid(row=4, column=3, padx=5, pady=5)
         tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.list_excellent_review_pairs).grid(row=4, column=4, padx=5, pady=5)
 
         # Treeview for displaying the query results
@@ -529,6 +529,41 @@ class QueryPage(tk.Frame):
         finally:
             cursor.close()
 
+    def no_excellent_items(self):
+        # Configure Treeview for this query
+        self.configure_treeview(["Username"], {"Username": "Username"})
+
+        # Clear previous results
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # SQL Query
+        query = """
+        SELECT DISTINCT u.username
+        FROM users u
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM items i
+            INNER JOIN reviews r ON i.item_id = r.item_id
+            WHERE i.username = u.username
+            AND r.rating = 'excellent'
+            GROUP BY i.item_id
+            HAVING COUNT(r.rating) >= 3
+        )
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
+
     def no_poor_reviews(self):
         # Configure Treeview for this query
         self.configure_treeview(["Username"], {"Username": "Username"})
@@ -561,37 +596,71 @@ class QueryPage(tk.Frame):
         finally:
             cursor.close()
     
-    def list_excellent_review_pairs(self):
-        # Configure the treeview for this specific query
-        self.configure_treeview(["User A", "User B"], {"User A": "User A", "User B": "User B"})
+    def all_poor_reviews(self):
+        # Configure Treeview for this query
+        self.configure_treeview(["Username"], {"Username": "Username"})
 
-        # Clear existing data in the treeview
+        # Clear previous results
         self.results_tree.delete(*self.results_tree.get_children())
 
-        # Establish a connection and execute the query
+        # SQL Query
+        query = """
+        SELECT DISTINCT u.username
+        FROM users u
+        WHERE EXISTS (
+            SELECT 1
+            FROM reviews r
+            WHERE r.username = u.username
+            GROUP BY r.item_id
+            HAVING MIN(r.rating) = 'poor' AND MAX(r.rating) = 'poor'
+        )
+        """
+
+        # Execute the query
         conn = self.controller.get_db_connection()
         cursor = conn.cursor()
         try:
-            query = """
-            SELECT DISTINCT r1.username AS UserA, r2.username AS UserB
-            FROM reviews r1
-            INNER JOIN reviews r2 ON r1.username != r2.username AND r1.rating = 'excellent' AND r2.rating = 'excellent'
-            INNER JOIN items i1 ON r1.item_id = i1.item_id AND i1.username = r2.username
-            INNER JOIN items i2 ON r2.item_id = i2.item_id AND i2.username = r1.username
-            GROUP BY r1.username, r2.username
-            HAVING COUNT(DISTINCT r1.item_id) = COUNT(DISTINCT i2.item_id) AND COUNT(DISTINCT r2.item_id) = COUNT(DISTINCT i1.item_id)
-            """
             cursor.execute(query)
             results = cursor.fetchall()
-
-            # Display the results in the treeview
-            for pair in results:
-                self.results_tree.insert("", "end", values=pair)
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            tk.messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
 
+    def no_poor_items(self):
+        # Configure Treeview for this query
+        self.configure_treeview(["Username"], {"Username": "Username"})
+
+        # Clear previous results
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # SQL Query
+        query = """
+        SELECT DISTINCT u.username
+        FROM users u
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM items i
+            LEFT JOIN reviews r ON i.item_id = r.item_id
+            WHERE i.username = u.username
+            AND (r.rating = 'poor' OR r.rating IS NULL)
+        )
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
 
     def go_back(self):
         self.controller.show_frame("LoggedInPage")
