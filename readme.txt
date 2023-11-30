@@ -1,9 +1,13 @@
 Josue Sanchez 
-              - Added insert item functionality
-              - Added Item Review functionality
-              - Refactored code to convert pages to Classes
-              - Helped troubleshoot integration of other features such as initilization of the db
-                and searching for an item by category
+              - Created QueryPage Class
+              - Created methods to:
+                - List the most expensive items in each category, 
+                - List the users who posted at least two items that were posted on the same day, one has a category
+                  of X, and another has a category of Y,
+                - List all the items posted by user X, such that all the comments are "Excellent" or "good" for
+                  these items
+                - List a user pair (A, B) such that they always gave each other "excellent" reviews for every single
+                  item they posted.
 
 Abigail Macias 
              - Step 4: Implemented the database initialization   
