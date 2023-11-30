@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, simpledialog
 import bcrypt
 from tkinter import messagebox
 from tkinter import ttk
@@ -432,7 +432,7 @@ class QueryPage(tk.Frame):
         tk.Button(self, text="Most Expensive", font=("Arial", 14), command=self.most_expensive_items).grid(row=4, column=0, padx=5, pady=5)
         tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 14), width=20, command=self.search_users_same_day_multi_category).grid(row=4, column=1, padx=5, pady=5)
         tk.Button(self, text="List User's Positive Items", font=("Arial", 14), command=self.list_positive_items).grid(row=4, column=2, padx=5, pady=5)
-        tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=self.go_back).grid(row=4, column=3, padx=5, pady=5)
+        tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=lambda: self.users_most_items_on_date(self.get_user_input_date())).grid(row=4, column=3, padx=5, pady=5)
         tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=4, column=4, padx=5, pady=5)
         tk.Button(self, text="No Excellent Items", font=("Arial", 14), command=self.no_excellent_items).grid(row=5, column=0, padx=5, pady=5)
         tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=5, column=1, padx=5, pady=5)
@@ -446,6 +446,10 @@ class QueryPage(tk.Frame):
         
         tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=7, column=2, pady=10)
 
+    def get_user_input_date(self):
+        # Get the date from the user
+        user_date = simpledialog.askstring("Input", "Enter date (YYYY-MM-DD):", parent=self)
+        return user_date
     def configure_treeview(self, columns, headings):
         """ Configure the treeview columns and headings """
         # Clear any existing columns
@@ -540,6 +544,45 @@ class QueryPage(tk.Frame):
             self.execute_positive_items_query(username)
         else:
             messagebox.showerror("Error", "Please enter a username")
+
+    def users_most_items_on_date(self, specific_date):
+        print("Specific Date:", specific_date)  # Debug statement
+
+        # Check if the user canceled the input
+        if specific_date is not None:
+            # Continue with the rest of your logic using specific_date
+            # Configure Treeview for this query
+            self.configure_treeview(["Username", "Number of Items"],
+                                    {"Username": "Username", "Number of Items": "Number of Items"})
+
+            # Clear previous results
+            self.results_tree.delete(*self.results_tree.get_children())
+
+            # SQL Query
+            query = """
+            SELECT u.username, COUNT(i.item_id) as num_items
+            FROM users u
+            LEFT JOIN items i ON u.username = i.username AND i.post_date = %s
+            GROUP BY u.username
+            ORDER BY num_items DESC
+            LIMIT 1  -- Limit to only the user with the most items
+            """
+
+            # Execute the query
+            conn = self.controller.get_db_connection()
+            cursor = conn.cursor()
+            try:
+                cursor.execute(query, (specific_date,))
+                results = cursor.fetchall()
+                print("Query Results:", results)  # Debug statement
+
+                for row in results:
+                    self.results_tree.insert("", "end", values=row)
+            except Exception as e:
+                tk.messagebox.showerror("Error", f"An error occurred: {e}")
+            finally:
+                cursor.close()
+
 
     def execute_positive_items_query(self, username):
         # Configure Treeview for this query
