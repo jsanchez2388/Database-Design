@@ -423,23 +423,28 @@ class QueryPage(tk.Frame):
         self.category_y_entry = tk.Entry(self, font=("Arial", 16))
         self.category_y_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
         
+        # Add entry field and button for the new query
+        tk.Label(self, text="Enter Username:", font=("Arial", 16)).grid(row=3, column=0, padx=5, pady=5, sticky='e')
+        self.user_entry = tk.Entry(self, font=("Arial", 16))
+        self.user_entry.grid(row=3, column=1, padx=5, pady=5, sticky='ew')
+
         # Buttons need to be updated to run each query
-        tk.Button(self, text="Most Expensive", font=("Arial", 14), command=self.most_expensive_items).grid(row=3, column=0, padx=5, pady=5)
-        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 14), width=20, command=self.search_users_same_day_multi_category).grid(row=3, column=1, padx=5, pady=5)
-        tk.Button(self, text="Specific User Comments", font=("Arial", 14), command=self.go_back).grid(row=3, column=2, padx=5, pady=5)
-        tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=self.go_back).grid(row=3, column=3, padx=5, pady=5)
-        tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=3, column=4, padx=5, pady=5)
-        tk.Button(self, text="No Excellent Items", font=("Arial", 14), command=self.no_excellent_items).grid(row=4, column=0, padx=5, pady=5)
-        tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=4, column=1, padx=5, pady=5)
-        tk.Button(self, text="All Poor Reviews", font=("Arial", 14), command=self.all_poor_reviews).grid(row=4, column=2, padx=5, pady=5)
-        tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.no_poor_items).grid(row=4, column=3, padx=5, pady=5)
-        tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.list_excellent_review_pairs).grid(row=4, column=4, padx=5, pady=5)
+        tk.Button(self, text="Most Expensive", font=("Arial", 14), command=self.most_expensive_items).grid(row=4, column=0, padx=5, pady=5)
+        tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 14), width=20, command=self.search_users_same_day_multi_category).grid(row=4, column=1, padx=5, pady=5)
+        tk.Button(self, text="List User's Positive Items", font=("Arial", 14), command=self.list_positive_items).grid(row=4, column=2, padx=5, pady=5)
+        tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=self.go_back).grid(row=4, column=3, padx=5, pady=5)
+        tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=4, column=4, padx=5, pady=5)
+        tk.Button(self, text="No Excellent Items", font=("Arial", 14), command=self.no_excellent_items).grid(row=5, column=0, padx=5, pady=5)
+        tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=5, column=1, padx=5, pady=5)
+        tk.Button(self, text="All Poor Reviews", font=("Arial", 14), command=self.all_poor_reviews).grid(row=5, column=2, padx=5, pady=5)
+        tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.no_poor_items).grid(row=5, column=3, padx=5, pady=5)
+        tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.list_excellent_review_pairs).grid(row=5, column=4, padx=5, pady=5)
 
         # Treeview for displaying the query results
         self.results_tree = ttk.Treeview(self)
-        self.results_tree.grid(row=5, column=0, columnspan=5, pady=10, padx=10, sticky="ew")
+        self.results_tree.grid(row=6, column=0, columnspan=5, pady=10, padx=10, sticky="ew")
         
-        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=6, column=2, pady=10)
+        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=7, column=2, pady=10)
 
     def configure_treeview(self, columns, headings):
         """ Configure the treeview columns and headings """
@@ -528,7 +533,44 @@ class QueryPage(tk.Frame):
             tk.messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
+    
+    def list_positive_items(self):
+        username = self.user_entry.get()
+        if username:
+            self.execute_positive_items_query(username)
+        else:
+            messagebox.showerror("Error", "Please enter a username")
 
+    def execute_positive_items_query(self, username):
+        # Configure Treeview for this query
+        self.configure_treeview(["Item ID", "Name", "Description", "Category", "Price", "Date"], 
+                                {"Item ID": "Item ID", "Name": "Name", "Description": "Description", 
+                                 "Category": "Category", "Price": "Price", "Date": "Date"})
+
+        # SQL query
+        query = """
+        SELECT i.item_id, i.item_name, i.item_description, i.category, i.item_price, i.post_date
+        FROM items i
+        WHERE i.username = %s AND NOT EXISTS (
+            SELECT 1
+            FROM reviews r
+            WHERE r.item_id = i.item_id AND r.rating NOT IN ('excellent', 'good')
+        )
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query, (username,))
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            cursor.close()
+    
     def no_excellent_items(self):
         # Configure Treeview for this query
         self.configure_treeview(["Username"], {"Username": "Username"})
@@ -692,6 +734,6 @@ class QueryPage(tk.Frame):
             messagebox.showerror("Error", str(e))
         finally:
             cursor.close()
-            
+
     def go_back(self):
         self.controller.show_frame("LoggedInPage")

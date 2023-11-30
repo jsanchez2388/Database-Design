@@ -7,7 +7,7 @@ from item_management import InsertItemPage
 class MainApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("1100x600")
+        self.geometry("1200x800")
         self.title("Database Design Project")
         self.conn = create_database_connection()
         if not self.conn:
@@ -41,7 +41,6 @@ class MainApp(tk.Tk):
         self.frames[QueryPage.__name__].grid(row=0, column=0, sticky="nsew")
 
         self.show_frame("StartPage")
-
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
