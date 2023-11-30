@@ -88,19 +88,20 @@ class StartPage(tk.Frame):
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user6', 'Coffee Maker', 'Brews coffee in minutes', 'Appliances', 89.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user5', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Business Suit', 'Professional attire', 'Clothing', 159.99, CURDATE());",
-            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Gadget Pro', 'E-bike', 'Sports', 399.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Troncycle', 'E-bike', 'Sports', 399.99, CURDATE());",
         ]
 
         # Additional insert statements for reviews table
         insert_reviews = [
             # Existing reviews
-            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'This gadget is a game-changer!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user8', 1, 'excellent', 'This gadget is a game-changer!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'Excellent gadget!', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user6', 2, 'good', 'Great bike for the price.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user7', 3, 'fair', 'Good but not the best coffee.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 4, 'excellent', 'Best yoga mat I have ever used!', CURDATE());",
-            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user8', 5, 'poor', 'The suit was not as expected.', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 5, 'poor', 'The suit was not as expected.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 5, 'excellent', 'Excellent quality suit!', CURDATE());",
-            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'Incredible gadget!', CURDATE());", 
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 6, 'excellent', 'The E-bike is fantastic!', CURDATE());"
         ]
 
         # Combine them with the previous user insert statements
@@ -433,7 +434,6 @@ class QueryPage(tk.Frame):
         tk.Button(self, text="Same-Day Multi-Category", font=("Arial", 14), width=20, command=self.search_users_same_day_multi_category).grid(row=4, column=1, padx=5, pady=5)
         tk.Button(self, text="List User's Positive Items", font=("Arial", 14), command=self.list_positive_items).grid(row=4, column=2, padx=5, pady=5)
         tk.Button(self, text="Most Items on Date", font=("Arial", 14), command=lambda: self.users_most_items_on_date(self.get_user_input_date())).grid(row=4, column=3, padx=5, pady=5)
-        tk.Button(self, text="Favorite User", font=("Arial", 14), command=self.go_back).grid(row=4, column=4, padx=5, pady=5)
         tk.Button(self, text="No Excellent Items", font=("Arial", 14), command=self.no_excellent_items).grid(row=5, column=0, padx=5, pady=5)
         tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=5, column=1, padx=5, pady=5)
         tk.Button(self, text="All Poor Reviews", font=("Arial", 14), command=self.all_poor_reviews).grid(row=5, column=2, padx=5, pady=5)
@@ -443,13 +443,30 @@ class QueryPage(tk.Frame):
         # Treeview for displaying the query results
         self.results_tree = ttk.Treeview(self)
         self.results_tree.grid(row=6, column=0, columnspan=5, pady=10, padx=10, sticky="ew")
-        
-        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=7, column=2, pady=10)
+
+        # Dropdown menus for User X and User Y
+        tk.Label(self, text="Select User X:", font=("Arial", 16)).grid(row=7, column=0, padx=5, pady=5)
+        self.user_x_var = tk.StringVar()
+        self.user_x_dropdown = ttk.Combobox(self, textvariable=self.user_x_var, font=("Arial", 16), state="readonly")
+        self.user_x_dropdown.grid(row=7, column=1, padx=5, pady=5)
+
+        tk.Label(self, text="Select User Y:", font=("Arial", 16)).grid(row=8, column=0, padx=5, pady=5)
+        self.user_y_var = tk.StringVar()
+        self.user_y_dropdown = ttk.Combobox(self, textvariable=self.user_y_var, font=("Arial", 16), state="readonly")
+        self.user_y_dropdown.grid(row=8, column=1, padx=5, pady=5)
+
+        # Populate dropdown menus with usernames
+        self.populate_usernames()
+
+        # Button to execute the query
+        tk.Button(self, text="Find Mutual Favorites", font=("Arial", 14), command=self.find_mutual_favorites).grid(row=9, column=0, columnspan=2, padx=5, pady=5)
+        tk.Button(self, text="Back", font=("Arial", 16), command=self.go_back).grid(row=10, column=2, pady=10)
 
     def get_user_input_date(self):
         # Get the date from the user
         user_date = simpledialog.askstring("Input", "Enter date (YYYY-MM-DD):", parent=self)
         return user_date
+    
     def configure_treeview(self, columns, headings):
         """ Configure the treeview columns and headings """
         # Clear any existing columns
@@ -775,6 +792,54 @@ class QueryPage(tk.Frame):
                 self.results_tree.insert("", "end", values=pair)
         except Exception as e:
             messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+        
+    def populate_usernames(self):
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT username FROM users")
+            users = [user[0] for user in cursor.fetchall()]
+            self.user_x_dropdown['values'] = users
+            self.user_y_dropdown['values'] = users
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+
+    def find_mutual_favorites(self):
+        user_x = self.user_x_var.get()
+        user_y = self.user_y_var.get()
+
+        if user_x and user_y:
+            self.execute_mutual_favorites_query(user_x, user_y)
+        else:
+            messagebox.showerror("Error", "Please select both User X and User Y")
+
+    def execute_mutual_favorites_query(self, user_x, user_y):
+        # Configure Treeview for this query
+        self.configure_treeview(["Favorited User"], {"Favorited User": "Favorited User"})
+
+        # SQL query to find the user whose items are reviewed as 'excellent' by both user_x and user_y
+        query = """
+        SELECT DISTINCT i.username
+        FROM items i
+        JOIN reviews r1 ON i.item_id = r1.item_id AND r1.rating = 'excellent' AND r1.username = %s
+        JOIN reviews r2 ON i.item_id = r2.item_id AND r2.rating = 'excellent' AND r2.username = %s
+        WHERE i.username NOT IN (%s, %s)
+        """
+
+        # Execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query, (user_x, user_y, user_x, user_y))
+            results = cursor.fetchall()
+            for row in results:
+                self.results_tree.insert("", "end", values=row)
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
 
