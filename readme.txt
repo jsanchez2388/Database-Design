@@ -14,8 +14,8 @@ Abigail Macias
              - Video Demo and Upload        
 
 Arfan Myint
-                - Implemented the search functionality for the database
-                - Helped with debugging some of the issues in the code
+                - Implemented the function to get the most items that the user has posted
+                - Implemented a date chooser for the user to choose the date
                 - Added buttons to the GUI and make it easier for UX
 
 
