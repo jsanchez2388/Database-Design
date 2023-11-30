@@ -84,20 +84,23 @@ class StartPage(tk.Frame):
         # Additional insert statements for items table
         insert_items = [
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Gadget Pro', 'Latest tech gadget', 'Electronics', 299.99, CURDATE());",
-            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user5', 'Mountain Bike', 'Off-road mountain bike', 'Sports', 489.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user7', 'Mountain Bike', 'Off-road mountain bike', 'Sports', 489.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user6', 'Coffee Maker', 'Brews coffee in minutes', 'Appliances', 89.99, CURDATE());",
-            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user7', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user5', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Business Suit', 'Professional attire', 'Clothing', 159.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Gadget Pro', 'E-bike', 'Sports', 399.99, CURDATE());",
         ]
 
         # Additional insert statements for reviews table
         insert_reviews = [
+            # Existing reviews
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'This gadget is a game-changer!', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user6', 2, 'good', 'Great bike for the price.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user7', 3, 'fair', 'Good but not the best coffee.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 4, 'excellent', 'Best yoga mat I have ever used!', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user8', 5, 'poor', 'The suit was not as expected.', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 5, 'excellent', 'Excellent quality suit!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 1, 'excellent', 'Incredible gadget!', CURDATE());", 
         ]
 
         # Combine them with the previous user insert statements
@@ -430,7 +433,7 @@ class QueryPage(tk.Frame):
         tk.Button(self, text="No Poor Reviews", font=("Arial", 14), command=self.no_poor_reviews).grid(row=4, column=1, padx=5, pady=5)
         tk.Button(self, text="All Poor Review", font=("Arial", 14), command=self.go_back).grid(row=4, column=2, padx=5, pady=5)
         tk.Button(self, text="No Poor Items", font=("Arial", 14), command=self.go_back).grid(row=4, column=3, padx=5, pady=5)
-        tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.go_back).grid(row=4, column=4, padx=5, pady=5)
+        tk.Button(self, text="Mutual Excellent Reviews", font=("Arial", 14), command=self.list_excellent_review_pairs).grid(row=4, column=4, padx=5, pady=5)
 
         # Treeview for displaying the query results
         self.results_tree = ttk.Treeview(self)
@@ -557,6 +560,38 @@ class QueryPage(tk.Frame):
             tk.messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
             cursor.close()
+    
+    def list_excellent_review_pairs(self):
+        # Configure the treeview for this specific query
+        self.configure_treeview(["User A", "User B"], {"User A": "User A", "User B": "User B"})
+
+        # Clear existing data in the treeview
+        self.results_tree.delete(*self.results_tree.get_children())
+
+        # Establish a connection and execute the query
+        conn = self.controller.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+            SELECT DISTINCT r1.username AS UserA, r2.username AS UserB
+            FROM reviews r1
+            INNER JOIN reviews r2 ON r1.username != r2.username AND r1.rating = 'excellent' AND r2.rating = 'excellent'
+            INNER JOIN items i1 ON r1.item_id = i1.item_id AND i1.username = r2.username
+            INNER JOIN items i2 ON r2.item_id = i2.item_id AND i2.username = r1.username
+            GROUP BY r1.username, r2.username
+            HAVING COUNT(DISTINCT r1.item_id) = COUNT(DISTINCT i2.item_id) AND COUNT(DISTINCT r2.item_id) = COUNT(DISTINCT i1.item_id)
+            """
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+            # Display the results in the treeview
+            for pair in results:
+                self.results_tree.insert("", "end", values=pair)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+
 
     def go_back(self):
         self.controller.show_frame("LoggedInPage")
