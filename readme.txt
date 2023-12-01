@@ -10,8 +10,13 @@ Josue Sanchez
                   item they posted.
 
 Abigail Macias 
-             - Step 4: Implemented the database initialization   
-             - Video Demo and Upload        
+              - Created methods to:  
+                - Display all the users who never posted any "excellent" items: an item is excellent if at least
+                  three reviews are excellent.
+                - Display all the users who never posted a "poor" review.
+                - Display all the users who posted some reviews, but each of them is "poor".
+                - Display those users such that each item they posted so far never received any "poor" reviews.     
+              - Recorded and Uploaded Video Demo
 
 Arfan Myint
                 - Implemented the function to get the most items that the user has posted
