@@ -23,5 +23,3 @@ Arfan Myint
                 - Implemented a date chooser for the user to choose the date
                 - Added buttons to the GUI and make it easier for UX
 
-
-Link to Demo - https://youtu.be/0J-33gaqFIY?si=tSRF7wmcA6L4dH16

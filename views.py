@@ -89,6 +89,7 @@ class StartPage(tk.Frame):
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user5', 'Yoga Mat', 'Eco-friendly yoga mat', 'Fitness', 19.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Business Suit', 'Professional attire', 'Clothing', 159.99, CURDATE());",
             "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user4', 'Troncycle', 'E-bike', 'Sports', 399.99, CURDATE());",
+            "INSERT INTO items (username, item_name, item_description, category, item_price, post_date) VALUES ('user8', 'Bow Tie', 'Formal attire', 'Clothing', 29.99, CURDATE());",
         ]
 
         # Additional insert statements for reviews table
@@ -101,7 +102,8 @@ class StartPage(tk.Frame):
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 4, 'excellent', 'Best yoga mat I have ever used!', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 5, 'poor', 'The suit was not as expected.', CURDATE());",
             "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user4', 5, 'excellent', 'Excellent quality suit!', CURDATE());",
-            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 6, 'excellent', 'The E-bike is fantastic!', CURDATE());"
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user5', 6, 'excellent', 'The E-bike is fantastic!', CURDATE());",
+            "INSERT INTO reviews (username, item_id, rating, description, review_date) VALUES ('user7', 7, 'excellent', 'Great quality!', CURDATE());",
         ]
 
         # Combine them with the previous user insert statements
@@ -581,15 +583,22 @@ class QueryPage(tk.Frame):
             FROM users u
             LEFT JOIN items i ON u.username = i.username AND i.post_date = %s
             GROUP BY u.username
+            HAVING COUNT(i.item_id) = (
+                SELECT MAX(item_count) FROM (
+                    SELECT COUNT(item_id) AS item_count
+                    FROM items
+                    WHERE post_date = %s
+                    GROUP BY username
+                ) AS subquery
+            )
             ORDER BY num_items DESC
-            LIMIT 1  -- Limit to only the user with the most items
             """
 
             # Execute the query
             conn = self.controller.get_db_connection()
             cursor = conn.cursor()
             try:
-                cursor.execute(query, (specific_date,))
+                cursor.execute(query, (specific_date, specific_date))
                 results = cursor.fetchall()
                 print("Query Results:", results)  # Debug statement
 
