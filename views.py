@@ -722,8 +722,11 @@ class QueryPage(tk.Frame):
             SELECT 1
             FROM reviews r
             WHERE r.username = u.username
-            GROUP BY r.item_id
-            HAVING MIN(r.rating) = 'poor' AND MAX(r.rating) = 'poor'
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM reviews r
+            WHERE r.username = u.username AND r.rating != 'poor'
         )
         """
 
